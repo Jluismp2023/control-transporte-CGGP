@@ -1,13 +1,40 @@
+// --- 1. IMPORTACIÓN Y CONFIGURACIÓN DE FIREBASE ---
+
+// Importar funciones de Firebase que necesitamos
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
+// TU CONFIGURACIÓN DE FIREBASE (La que copiaste en el paso anterior)
+const firebaseConfig = {
+    apiKey: "AIzaSyDqhFlx7rP4kFLM4WW7qPQjQfrauw4n9MM",
+    authDomain: "control-transporte-cggp-e124e.firebaseapp.com",
+    projectId: "control-transporte-cggp-e124e",
+    storageBucket: "control-transporte-cggp-e124e.firebasestorage.app",
+    messagingSenderId: "567479910196",
+    appId: "1:567479910196:web:695b6225e7d29e4f64ef61"
+};
+
+// Inicializar Firebase y Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Referencias a nuestras "colecciones" (carpetas) en la base de datos
+const colCanteras = collection(db, "canteras");
+const colMateriales = collection(db, "materiales");
+const colVolquetas = collection(db, "volquetas");
+const colViajes = collection(db, "viajes");
+
+
 // --- Lógica para cambiar de Pestañas ---
-function mostrarTab(nombreTab) {
+window.mostrarTab = function(nombreTab) {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
     document.getElementById(nombreTab).classList.add('active');
     event.currentTarget.classList.add('active');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // --- BASES DE DATOS ---
+document.addEventListener('DOMContentLoaded', async function() {
+    // --- BASES DE DATOS LOCALES (Ahora son un reflejo de la nube) ---
     let canterasRegistradas = [], materialesRegistrados = [], volquetasRegistradas = [], viajesRegistrados = [];
 
     // --- ELEMENTOS DEL DOM ---
@@ -30,22 +57,42 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     const rowsPerPage = 15;
 
-    function guardarDatos() { localStorage.setItem('canteras', JSON.stringify(canterasRegistradas)); localStorage.setItem('materiales', JSON.stringify(materialesRegistrados)); localStorage.setItem('volquetas', JSON.stringify(volquetasRegistradas)); localStorage.setItem('viajes', JSON.stringify(viajesRegistrados)); }
-    function cargarDatos() { canterasRegistradas = JSON.parse(localStorage.getItem('canteras')) || []; materialesRegistrados = JSON.parse(localStorage.getItem('materiales')) || []; volquetasRegistradas = JSON.parse(localStorage.getItem('volquetas')) || []; viajesRegistrados = JSON.parse(localStorage.getItem('viajes')) || []; }
-    function setFechaActual() { const fechaInput = document.getElementById('fechaViaje'); const hoy = new Date(); fechaInput.value = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2) + '-' + ('0' + hoy.getDate()).slice(-2); }
+    // --- NUEVAS FUNCIONES DE DATOS CON FIREBASE ---
+    async function cargarDatos() {
+        // Cargar Canteras
+        const queryCanteras = await getDocs(colCanteras);
+        canterasRegistradas = queryCanteras.docs.map(doc => ({ id: doc.id, nombre: doc.data().nombre }));
+        // Cargar Materiales
+        const queryMateriales = await getDocs(colMateriales);
+        materialesRegistrados = queryMateriales.docs.map(doc => ({ id: doc.id, nombre: doc.data().nombre }));
+        // Cargar Volquetas
+        const queryVolquetas = await getDocs(colVolquetas);
+        volquetasRegistradas = queryVolquetas.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Cargar Viajes
+        const queryViajes = await getDocs(colViajes);
+        viajesRegistrados = queryViajes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
 
+    // --- FUNCIÓN PARA PONER LA FECHA ACTUAL ---
+    function setFechaActual() {
+        const fechaInput = document.getElementById('fechaViaje');
+        const hoy = new Date();
+        fechaInput.value = hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2) + '-' + ('0' + hoy.getDate()).slice(-2);
+    }
+
+    // --- FUNCIÓN CENTRAL PARA ACTUALIZAR LA PANTALLA ---
     function actualizarPantalla() {
         viajesRegistrados.sort((a, b) => b.fecha.localeCompare(a.fecha));
         canterasTableBody.innerHTML = '';
-        canterasRegistradas.forEach((c, i) => { canterasTableBody.innerHTML += `<tr><td>${c}</td><td><button class="action-btn edit-btn" data-type="cantera" data-index="${i}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="cantera" data-index="${i}"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
+        canterasRegistradas.forEach((c) => { canterasTableBody.innerHTML += `<tr><td>${c.nombre}</td><td><button class="action-btn edit-btn" data-type="cantera" data-id="${c.id}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="cantera" data-id="${c.id}"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
         materialesTableBody.innerHTML = '';
-        materialesRegistrados.forEach((m, i) => { materialesTableBody.innerHTML += `<tr><td>${m}</td><td><button class="action-btn edit-btn" data-type="material" data-index="${i}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="material" data-index="${i}"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
+        materialesRegistrados.forEach((m) => { materialesTableBody.innerHTML += `<tr><td>${m.nombre}</td><td><button class="action-btn edit-btn" data-type="material" data-id="${m.id}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="material" data-id="${m.id}"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
         volquetasTableBody.innerHTML = '';
-        volquetasRegistradas.forEach((v, i) => { volquetasTableBody.innerHTML += `<tr><td>${v.descripcion}</td><td>${v.chofer}</td><td>${v.placa}</td><td>${v.propietario}</td><td>${v.volumen} m³</td><td><button class="action-btn edit-btn" data-type="volqueta" data-index="${i}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="volqueta" data-index="${i}"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
-        const canteraSelect = document.getElementById('canteraSelect'); canteraSelect.innerHTML = '<option value="">-- Seleccione --</option>'; canterasRegistradas.forEach(c => canteraSelect.innerHTML += `<option value="${c}">${c}</option>`);
-        const materialSelect = document.getElementById('materialSelect'); materialSelect.innerHTML = '<option value="">-- Seleccione --</option>'; materialesRegistrados.forEach(m => materialSelect.innerHTML += `<option value="${m}">${m}</option>`);
+        volquetasRegistradas.forEach((v) => { volquetasTableBody.innerHTML += `<tr><td>${v.descripcion}</td><td>${v.chofer}</td><td>${v.placa}</td><td>${v.propietario}</td><td>${v.volumen} m³</td><td><button class="action-btn edit-btn" data-type="volqueta" data-id="${v.id}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="volqueta" data-id="${v.id}"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
+        const canteraSelect = document.getElementById('canteraSelect'); canteraSelect.innerHTML = '<option value="">-- Seleccione --</option>'; canterasRegistradas.forEach(c => canteraSelect.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`);
+        const materialSelect = document.getElementById('materialSelect'); materialSelect.innerHTML = '<option value="">-- Seleccione --</option>'; materialesRegistrados.forEach(m => materialSelect.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`);
         const volquetaSelect = document.getElementById('volquetaSelect'); volquetaSelect.innerHTML = '<option value="">-- Seleccione --</option>'; volquetasRegistradas.forEach(v => volquetaSelect.innerHTML += `<option value="${v.descripcion}">Desc: ${v.descripcion} (${v.volumen} m³)</option>`);
-        filtroMaterialSelect.innerHTML = '<option value="todos">Mostrar Todos</option>'; materialesRegistrados.forEach(m => filtroMaterialSelect.innerHTML += `<option value="${m}">${m}</option>`);
+        filtroMaterialSelect.innerHTML = '<option value="todos">Mostrar Todos</option>'; materialesRegistrados.forEach(m => filtroMaterialSelect.innerHTML += `<option value="${m.nombre}">${m.nombre}</option>`);
         filtroMaterialSelect.value = filtroMaterialActual;
         let viajesFiltrados = viajesRegistrados;
         if (searchTerm) { const lowerCaseSearchTerm = searchTerm.toLowerCase(); viajesFiltrados = viajesFiltrados.filter(viaje => Object.values(viaje).some(val => String(val).toLowerCase().includes(lowerCaseSearchTerm))); }
@@ -65,9 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const viajesPaginados = viajesFiltrados.slice(startIndex, endIndex);
         viajesTableBody.innerHTML = '';
         viajesPaginados.forEach(viaje => {
-             const originalIndex = viajesRegistrados.indexOf(viaje);
              const costoTotal = viaje.costoMaterial + viaje.costoTransporte;
-             viajesTableBody.innerHTML += `<tr><td>${viaje.fecha}</td><td>${viaje.descripcion}</td><td>${viaje.chofer}</td><td>${viaje.placa}</td><td>${viaje.volumen.toFixed(2)} m³</td><td>${viaje.cantera}</td><td>${viaje.material}</td><td>$${viaje.costoMaterial.toFixed(2)}</td><td>$${viaje.costoTransporte.toFixed(2)}</td><td>$${costoTotal.toFixed(2)}</td><td>${viaje.observaciones}</td><td><button class="action-btn edit-btn" data-type="viaje" data-index="${originalIndex}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="viaje" data-index="${originalIndex}"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+             viajesTableBody.innerHTML += `<tr><td>${viaje.fecha}</td><td>${viaje.descripcion}</td><td>${viaje.chofer}</td><td>${viaje.placa}</td><td>${viaje.volumen.toFixed(2)} m³</td><td>${viaje.cantera}</td><td>${viaje.material}</td><td>$${viaje.costoMaterial.toFixed(2)}</td><td>$${viaje.costoTransporte.toFixed(2)}</td><td>$${costoTotal.toFixed(2)}</td><td>${viaje.observaciones}</td><td><button class="action-btn edit-btn" data-type="viaje" data-id="${viaje.id}"><i class="fa-solid fa-pencil"></i></button><button class="action-btn delete-btn" data-type="viaje" data-id="${viaje.id}"><i class="fa-solid fa-trash"></i></button></td></tr>`;
         });
         pageInfo.textContent = `Página ${totalPages > 0 ? currentPage : 0} de ${totalPages}`;
         prevPageBtn.disabled = currentPage === 1;
@@ -75,9 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- MANEJO DE FORMULARIOS ---
-    canteraForm.addEventListener('submit', e => { e.preventDefault(); canterasRegistradas.push(document.getElementById('nombreCantera').value); guardarDatos(); actualizarPantalla(); canteraForm.reset(); });
-    materialForm.addEventListener('submit', e => { e.preventDefault(); materialesRegistrados.push(document.getElementById('nombreMaterial').value); guardarDatos(); actualizarPantalla(); materialForm.reset(); });
-    viajeForm.addEventListener('submit', e => {
+    canteraForm.addEventListener('submit', async e => { e.preventDefault(); await addDoc(colCanteras, { nombre: document.getElementById('nombreCantera').value }); await cargarDatos(); actualizarPantalla(); canteraForm.reset(); });
+    materialForm.addEventListener('submit', async e => { e.preventDefault(); await addDoc(colMateriales, { nombre: document.getElementById('nombreMaterial').value }); await cargarDatos(); actualizarPantalla(); materialForm.reset(); });
+    viajeForm.addEventListener('submit', async e => {
         e.preventDefault();
         const numeroViajesInput = document.getElementById('numeroViajes');
         const numeroDeViajes = parseInt(numeroViajesInput.value, 10) || 1;
@@ -85,54 +131,62 @@ document.addEventListener('DOMContentLoaded', function() {
         const volqueta = volquetasRegistradas.find(v => v.descripcion === descripcionSeleccionada);
         if (!volqueta) { alert('Error: La volqueta seleccionada ya no existe.'); return; }
         const viajeData = { fecha: document.getElementById('fechaViaje').value, descripcion: volqueta.descripcion, chofer: volqueta.chofer, placa: volqueta.placa, volumen: volqueta.volumen, cantera: document.getElementById('canteraSelect').value, material: document.getElementById('materialSelect').value, costoMaterial: parseFloat(document.getElementById('costoMaterial').value), costoTransporte: parseFloat(document.getElementById('costoTransporte').value), observaciones: document.getElementById('observaciones').value };
-        if (editIndexViaje === null) { for (let i = 0; i < numeroDeViajes; i++) { viajesRegistrados.push(viajeData); } } 
-        else { viajesRegistrados[editIndexViaje] = viajeData; editIndexViaje = null; formViajeTitulo.innerHTML = 'Registrar Nuevo Viaje'; document.getElementById('btnGuardarViaje').innerHTML = '<i class="fa-solid fa-plus"></i> Agregar Viaje'; numeroViajesInput.disabled = false; }
-        guardarDatos(); actualizarPantalla(); viajeForm.reset(); setFechaActual(); numeroViajesInput.value = 1;
+        if (editIndexViaje === null) { for (let i = 0; i < numeroDeViajes; i++) { await addDoc(colViajes, viajeData); } } 
+        else { await updateDoc(doc(db, "viajes", editIndexViaje), viajeData); editIndexViaje = null; formViajeTitulo.innerHTML = 'Registrar Nuevo Viaje'; document.getElementById('btnGuardarViaje').innerHTML = '<i class="fa-solid fa-plus"></i> Agregar Viaje'; numeroViajesInput.disabled = false; }
+        await cargarDatos(); actualizarPantalla(); viajeForm.reset(); setFechaActual(); numeroViajesInput.value = 1;
     });
-    registroVolquetaForm.addEventListener('submit', e => {
+    registroVolquetaForm.addEventListener('submit', async e => {
         e.preventDefault();
-        const volqueta = { descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('chofer').value, placa: document.getElementById('placa').value, propietario: document.getElementById('propietario').value, volumen: parseFloat(document.getElementById('volumen').value) };
-        if (editIndexVolqueta === null) { volquetasRegistradas.push(volqueta); } 
-        else { volquetasRegistradas[editIndexVolqueta] = volqueta; editIndexVolqueta = null; formVolquetaTitulo.innerHTML = 'Registrar Nueva Volqueta'; document.getElementById('btnGuardarVolqueta').innerHTML = '<i class="fa-solid fa-plus"></i> Añadir Volqueta'; }
-        guardarDatos(); actualizarPantalla(); registroVolquetaForm.reset();
+        const volquetaData = { descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('chofer').value, placa: document.getElementById('placa').value, propietario: document.getElementById('propietario').value, volumen: parseFloat(document.getElementById('volumen').value) };
+        if (editIndexVolqueta === null) { await addDoc(colVolquetas, volquetaData); } 
+        else { await updateDoc(doc(db, "volquetas", editIndexVolqueta), volquetaData); editIndexVolqueta = null; formVolquetaTitulo.innerHTML = 'Registrar Nueva Volqueta'; document.getElementById('btnGuardarVolqueta').innerHTML = '<i class="fa-solid fa-plus"></i> Añadir Volqueta'; }
+        await cargarDatos(); actualizarPantalla(); registroVolquetaForm.reset();
     });
 
     // --- LÓGICA DE INTERACCIÓN ---
-    function handleActionClick(e) {
+    async function handleActionClick(e) {
         const targetButton = e.target.closest('.action-btn');
         if (!targetButton) return;
         const type = targetButton.dataset.type;
-        const index = parseInt(targetButton.dataset.index, 10);
+        const id = targetButton.dataset.id;
         if (targetButton.classList.contains('delete-btn')) {
             if (!confirm('¿Estás seguro de que quieres eliminar este registro?')) return;
-            if (type === 'cantera') canterasRegistradas.splice(index, 1);
-            if (type === 'material') materialesRegistrados.splice(index, 1);
-            if (type === 'volqueta') volquetasRegistradas.splice(index, 1);
-            if (type === 'viaje') viajesRegistrados.splice(index, 1);
+            if (type === 'cantera') await deleteDoc(doc(db, "canteras", id));
+            if (type === 'material') await deleteDoc(doc(db, "materiales", id));
+            if (type === 'volqueta') await deleteDoc(doc(db, "volquetas", id));
+            if (type === 'viaje') await deleteDoc(doc(db, "viajes", id));
         } else if (targetButton.classList.contains('edit-btn')) {
-            if (type === 'cantera') { const n = prompt('Editar nombre de la cantera:', canterasRegistradas[index]); if (n) canterasRegistradas[index] = n; }
-            if (type === 'material') { const n = prompt('Editar nombre del material:', materialesRegistrados[index]); if (n) materialesRegistrados[index] = n; }
+            if (type === 'cantera') { 
+                const item = canterasRegistradas.find(c => c.id === id);
+                const n = prompt('Editar nombre de la cantera:', item.nombre); 
+                if (n) await updateDoc(doc(db, "canteras", id), { nombre: n });
+            }
+            if (type === 'material') {
+                const item = materialesRegistrados.find(m => m.id === id);
+                const n = prompt('Editar nombre del material:', item.nombre);
+                if (n) await updateDoc(doc(db, "materiales", id), { nombre: n });
+            }
             if (type === 'volqueta') {
-                const v = volquetasRegistradas[index];
+                const v = volquetasRegistradas.find(v => v.id === id);
                 document.getElementById('descripcion').value = v.descripcion; document.getElementById('chofer').value = v.chofer; document.getElementById('placa').value = v.placa; document.getElementById('propietario').value = v.propietario; document.getElementById('volumen').value = v.volumen;
-                editIndexVolqueta = index;
+                editIndexVolqueta = id;
                 formVolquetaTitulo.innerHTML = 'Editando Volqueta'; document.getElementById('btnGuardarVolqueta').innerHTML = '<i class="fa-solid fa-save"></i> Actualizar Volqueta';
-                document.querySelector('.tab-button[onclick="mostrarTab(\'datos\')"]').click(); formVolquetaTitulo.scrollIntoView({ behavior: 'smooth' });
+                window.mostrarTab('datos'); formVolquetaTitulo.scrollIntoView({ behavior: 'smooth' });
             }
             if (type === 'viaje') {
-                const v = viajesRegistrados[index];
+                const v = viajesRegistrados.find(v => v.id === id);
                 document.getElementById('fechaViaje').value = v.fecha;
                 document.getElementById('numeroViajes').value = 1; document.getElementById('numeroViajes').disabled = true;
                 document.getElementById('volquetaSelect').value = v.descripcion; document.getElementById('canteraSelect').value = v.cantera;
                 document.getElementById('materialSelect').value = v.material; document.getElementById('costoMaterial').value = v.costoMaterial;
                 document.getElementById('costoTransporte').value = v.costoTransporte;
                 document.getElementById('observaciones').value = v.observaciones;
-                editIndexViaje = index;
+                editIndexViaje = id;
                 formViajeTitulo.innerHTML = 'Editando Viaje'; document.getElementById('btnGuardarViaje').innerHTML = '<i class="fa-solid fa-save"></i> Actualizar Viaje';
-                document.querySelector('.tab-button[onclick="mostrarTab(\'viajes\')"]').click(); formViajeTitulo.scrollIntoView({ behavior: 'smooth' });
+                window.mostrarTab('viajes'); formViajeTitulo.scrollIntoView({ behavior: 'smooth' });
             }
         }
-        guardarDatos();
+        await cargarDatos();
         actualizarPantalla();
     }
     document.getElementById('datos').addEventListener('click', handleActionClick);
@@ -188,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
     imprimirResumenBtn.addEventListener('click', () => imprimirSeccion(resumenContainer, `Resumen por Material (${filtroMaterialActual === 'todos' ? 'Todos' : filtroMaterialActual})`));
     
     // --- INICIALIZACIÓN DE LA APLICACIÓN ---
-    cargarDatos();
+    await cargarDatos();
     actualizarPantalla();
     setFechaActual();
     document.getElementById('viajes').classList.add('active');
