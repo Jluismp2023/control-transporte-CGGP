@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Transporte</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Control de Transporte de Materiales</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="mostrarTab('viajes')">Control de Viajes</button>
+            <button class="tab-button" onclick="mostrarTab('resumen')">RESUMEN</button>
+            <button class="tab-button" onclick="mostrarTab('datos')">DATOS</button>
+        </div>
+
+        <div id="viajes" class="tab-content active">
+            <div class="form-container">
+                <h2 id="formViajeTitulo">Registrar Nuevo Viaje</h2>
+                <form id="viajeForm">
+                    <label for="fechaViaje">Fecha:</label>
+                    <input type="date" id="fechaViaje" required>
+                    
+                    <label for="numeroViajes">Número de Viajes:</label>
+                    <input type="number" id="numeroViajes" value="1" min="1" required>
+
+                    <label for="volquetaSelect">Seleccionar Volqueta:</label>
+                    <select id="volquetaSelect" required></select>
+                    <label for="canteraSelect">Seleccionar Cantera:</label>
+                    <select id="canteraSelect" required></select>
+                    <label for="materialSelect">Seleccionar Tipo de Material:</label>
+                    <select id="materialSelect" required></select>
+                    <label for="costoMaterial">Costo del Material ($):</label>
+                    <input type="number" id="costoMaterial" step="0.01" required>
+                    <label for="costoTransporte">Costo del Transporte ($):</label>
+                    <input type="number" id="costoTransporte" step="0.01" required>
+                    <label for="observaciones">Observaciones:</label>
+                    <textarea id="observaciones" rows="3"></textarea>
+                    <button type="submit" id="btnGuardarViaje"><i class="fa-solid fa-plus"></i> Agregar Viaje</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="resumen" class="tab-content">
+            <div id="historialContainer" class="table-container">
+                <div class="print-header"></div>
+                <div class="toolbar">
+                    <div class="filter-container">
+                        <label for="searchInput">Buscar:</label>
+                        <input type="search" id="searchInput" placeholder="Buscar en el historial...">
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtroMaterialSelect">Material:</label>
+                        <select id="filtroMaterialSelect"></select>
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtroFechaDesde">Desde:</label>
+                        <input type="date" id="filtroFechaDesde">
+                        <label for="filtroFechaHasta">Hasta:</label>
+                        <input type="date" id="filtroFechaHasta">
+                        <button id="btnFiltrarFecha" class="filter-btn"><i class="fa-solid fa-filter"></i> Filtrar</button>
+                        <button id="btnLimpiarFecha" class="filter-btn clear-btn"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                    </div>
+                    <button id="imprimirHistorialBtn" class="print-btn"><i class="fa-solid fa-print"></i> Imprimir Control</button>
+                </div>
+                <h2>Control de Transporte de Materiales</h2>
+                <table id="viajesTable">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th><th>Volqueta (Descripción)</th><th>Chofer</th><th>Placa</th><th>Volumen (m³)</th><th>Cantera</th><th>Material</th>
+                            <th>Costo Material</th><th>Costo Transporte</th><th>Costo Total</th><th>Observaciones</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="viajesTableBody"></tbody>
+                    <tfoot id="viajesTableFooter"></tfoot>
+                </table>
+                <div id="paginationControls" class="pagination-controls">
+                    <button id="prevPageBtn">&laquo; Anterior</button>
+                    <span id="pageInfo"></span>
+                    <button id="nextPageBtn">Siguiente &raquo;</button>
+                </div>
+                <div class="print-footer"></div>
+            </div>
+            
+            <div id="resumenContainer" class="table-container">
+                <div class="print-header"></div>
+                <div class="toolbar">
+                    <h2>Resumen por Tipo de Material</h2>
+                    <button id="imprimirResumenBtn" class="print-btn"><i class="fa-solid fa-print"></i> Imprimir Resumen</button>
+                </div>
+                <table id="resumenMaterialesTable">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Material</th><th>Volumen Total (m³)</th><th>Costo Total de Material</th><th>Costo Total de Transporte</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resumenMaterialesTableBody"></tbody>
+                    <tfoot id="resumenMaterialesFooter"></tfoot>
+                </table>
+                <div class="print-footer"></div>
+            </div>
+        </div>
+
+        <div id="datos" class="tab-content">
+            <div class="form-container">
+                <h2 id="formVolquetaTitulo">Registrar Nueva Volqueta</h2>
+                <form id="registroVolquetaForm">
+                    <label for="descripcion">Descripción de Volqueta:</label>
+                    <input type="text" id="descripcion" required>
+                    <label for="chofer">Nombre del Chofer:</label>
+                    <input type="text" id="chofer" required>
+                    <label for="placa">Placa:</label>
+                    <input type="text" id="placa" required>
+                    <label for="propietario">Propietario:</label>
+                    <input type="text" id="propietario" required>
+                    <label for="volumen">Volumen (m³):</label>
+                    <input type="number" id="volumen" step="0.1" required>
+                    <button type="submit" id="btnGuardarVolqueta"><i class="fa-solid fa-plus"></i> Añadir Volqueta</button>
+                </form>
+            </div>
+            <div class="table-container">
+                <h2>Volquetas Registradas</h2>
+                <table id="volquetasTable">
+                    <thead>
+                        <tr>
+                            <th>Descripción</th><th>Chofer</th><th>Placa</th><th>Propietario</th><th>Volumen (m³)</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="volquetasTableBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="form-container">
+                <h2>Registrar Nueva Cantera</h2>
+                <form id="canteraForm">
+                    <label for="nombreCantera">Nombre de la Cantera:</label>
+                    <input type="text" id="nombreCantera" required>
+                    <button type="submit"><i class="fa-solid fa-plus"></i> Añadir Cantera</button>
+                </form>
+            </div>
+            <div class="table-container">
+                 <h2>Canteras Registradas</h2>
+                 <table id="canterasTable">
+                     <thead><tr><th>Nombre</th><th>Acciones</th></tr></thead>
+                     <tbody id="canterasTableBody"></tbody>
+                 </table>
+            </div>
+            <div class="form-container">
+                <h2>Registrar Nuevo Tipo de Material</h2>
+                <form id="materialForm">
+                    <label for="nombreMaterial">Nombre del Material:</label>
+                    <input type="text" id="nombreMaterial" required>
+                    <button type="submit"><i class="fa-solid fa-plus"></i> Añadir Material</button>
+                </form>
+            </div>
+             <div class="table-container">
+                 <h2>Materiales Registrados</h2>
+                 <table id="materialesTable">
+                      <thead><tr><th>Nombre</th><th>Acciones</th></tr></thead>
+                     <tbody id="materialesTableBody"></tbody>
+                 </table>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
