@@ -1,0 +1,296 @@
+/* --- 1. Importar Fuente y Definir Variables --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+    --color-principal: #2c3e50; /* Azul oscuro */
+    --color-secundario: #3498db; /* Azul brillante */
+    --color-fondo: #f4f7f6;
+    --color-superficie: #ffffff;
+    --color-texto: #333;
+    --color-borde: #dfe6e9;
+    --color-exito: #2ecc71; /* Verde */
+    --color-peligro: #e74c3c; /* Rojo */
+    --sombra: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --radio-borde: 8px;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    font-size: 16px; /* --- CAMBIO AQUÍ: Tamaño de letra base --- */
+}
+
+/* --- 2. Estructura Principal y Títulos --- */
+.container {
+    max-width: 1300px;
+    margin: auto;
+    background: var(--color-superficie);
+    padding: 30px;
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra);
+}
+
+h1 {
+    text-align: center;
+    color: var(--color-principal);
+    font-weight: 700;
+}
+
+h2 {
+    text-align: center;
+    color: var(--color-principal);
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-borde);
+    padding-bottom: 10px;
+    margin-top: 25px;
+}
+
+/* --- 3. Pestañas de Navegación --- */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid var(--color-borde);
+    margin-bottom: 30px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 16px;
+    font-weight: 500;
+    color: #7f8c8d;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    color: var(--color-secundario);
+    border-bottom: 3px solid var(--color-secundario);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* --- 4. Formularios y Entradas --- */
+.form-container {
+    margin-bottom: 20px;
+    padding: 25px;
+    background-color: #fdfdfd;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: var(--radio-borde);
+    border: 1px solid var(--color-borde);
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1em; /* Hereda el tamaño de la letra del body */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--color-secundario);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* --- 5. Botones --- */
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: var(--color-secundario);
+    color: #fff;
+    border-radius: var(--radio-borde);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.action-btn {
+    padding: 5px 10px; margin: 2px; width: auto;
+    font-size: 14px; /* Un poco más grande */
+    min-width: auto;
+}
+
+.edit-btn { background-color: var(--color-secundario); }
+.edit-btn:hover { background-color: #2980b9; }
+.delete-btn { background-color: var(--color-peligro); }
+.delete-btn:hover { background-color: #c0392b; }
+
+.print-btn, .filter-btn {
+    width: auto;
+    padding: 8px 15px;
+    font-size: 15px; /* Un poco más grande */
+    font-weight: 500;
+}
+.print-btn { background-color: var(--color-exito); }
+.print-btn:hover { background-color: #27ae60; }
+.clear-btn { background-color: #95a5a6; }
+.clear-btn:hover { background-color: #7f8c8d; }
+
+/* --- 6. Tablas --- */
+.table-container {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 15px; /* --- CAMBIO AQUÍ: Tamaño de letra de tablas --- */
+}
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-borde);
+    text-align: left;
+    vertical-align: middle;
+}
+thead {
+    background-color: var(--color-principal);
+    color: #fff;
+}
+tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+tbody tr:hover {
+    background-color: #e9ecef;
+}
+tfoot {
+    font-weight: bold;
+    background-color: #e9ecef;
+    border-top: 2px solid var(--color-principal);
+}
+
+/* --- 7. Barra de Herramientas y Paginación --- */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: var(--radio-borde);
+    margin-bottom: 20px;
+}
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.filter-container label {
+    margin-bottom: 0;
+    font-weight: 500;
+}
+.filter-container select,
+.filter-container input {
+    width: auto;
+    margin-bottom: 0;
+}
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 15px;
+}
+.pagination-controls button {
+    width: auto;
+    background-color: var(--color-principal);
+}
+.pagination-controls button:hover {
+    background-color: #1f2b38;
+}
+.pagination-controls button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+}
+#pageInfo { font-weight: bold; color: var(--color-principal); }
+hr { display: none; }
+
+/* --- 8. Estilos de Impresión --- */
+.print-header, .print-footer { display: none; }
+
+@media print {
+    @page {
+        size: landscape;
+    }
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    body * { visibility: hidden; }
+    .printable, .printable * { visibility: visible; }
+    .printable {
+        position: absolute; left: 0; top: 0; width: 100%; margin: 0;
+        padding: 20px; border: none; box-shadow: none;
+    }
+    .printable .print-header {
+        display: block; text-align: center; margin-bottom: 25px;
+        border-bottom: 2px solid #000; padding-bottom: 15px;
+    }
+    .printable .print-header .print-title-main {
+        font-size: 16pt; font-weight: bold; letter-spacing: 1px;
+    }
+    .printable .print-header .print-title-sub {
+        font-size: 11pt; margin-top: 5px;
+    }
+    .printable .print-header .print-report-title {
+        font-size: 12pt; font-weight: bold; margin-top: 15px;
+    }
+    .printable .print-header p {
+        font-size: 9pt; color: #666; margin-top: 5px;
+    }
+    .printable h2 { display: none; }
+    .printable table { font-size: 10pt; table-layout: auto; width: 100%; }
+    .printable th, .printable td {
+        padding: 4px;
+        word-break: break-word;
+    }
+    .action-btn, .print-btn, .toolbar, .pagination-controls { display: none; }
+    #viajesTable th:last-child, #viajesTable td:last-child { display: none; }
+    .printable tbody tr {
+        background-color: transparent !important;
+    }
+    .printable tfoot {
+        background-color: #e9e9e9 !important;
+    }
+    .printable .print-footer {
+        display: block; text-align: center; margin-top: 80px;
+    }
+    .printable .print-footer div {
+        margin-top: 5px; font-size: 11pt;
+    }
+    .printable .print-footer .firma-titulo {
+        padding-bottom: 60px;
+    }
+    .printable .print-footer .nombre-ingeniero {
+        font-weight: bold;
+    }
+}
